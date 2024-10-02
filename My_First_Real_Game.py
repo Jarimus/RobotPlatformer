@@ -7,10 +7,11 @@ script_dir = os.path.dirname(__file__) #<-- The location of the .py-file for loa
 
 #Player character attributes
 class Player(pygame.sprite.Sprite):
-    def __init__(self, image: str, position: tuple):
+    def __init__(self, image: pygame.Surface, position: tuple):
         super().__init__()
-        self.image = pygame.image.load(image)
+        self.image = image
         self.position = (position[0], position[1])
+        self.map_start_position = (position[0], position[1])
         self.speed = 0.3
         self.max_speed = 5
         self.jump_strength = 14
@@ -26,6 +27,9 @@ class Player(pygame.sprite.Sprite):
         self.moveleft = False
         self.grounded = False
         self.jumping = False
+        self.invulnerable = False
+        self.invulnerable_length = 120
+        self.invulnerable_timer = 0
         self.rect = pygame.Rect(self.position[0], self.position[1], self.width, self.height)
 
     def update(self):
@@ -35,11 +39,26 @@ class Player(pygame.sprite.Sprite):
         if self.moveright:
             self.x_speed = min( self.x_speed + self.speed, self.max_speed)
 
+
+        #check for flags and their effects
         if not self.grounded:
             if not self.moveup:
                 self.y_speed += self.fall_speed
 
             self.y_speed = min( self.y_speed + self.fall_speed, self.max_fall_speed)
+        
+        if self.invulnerable:
+            self.invulnerable_timer += 1
+
+            if self.invulnerable_timer >= self.invulnerable_length:
+                self.invulnerable = False
+                self.invulnerable_timer = 0
+            
+            if self.invulnerable_timer % 10 == 0 and self.image.get_alpha() == None:
+                self.image.set_alpha(25)
+            elif self.invulnerable_timer % 10 == 0:
+                self.image.set_alpha()
+                
 
         
         if not self.moveleft and not self.moveright:
@@ -68,9 +87,9 @@ class Player(pygame.sprite.Sprite):
 
 #Monster character attributes
 class Monster(pygame.sprite.Sprite):
-    def __init__(self, image: str, position: tuple):
+    def __init__(self, image: pygame.Surface, position: tuple):
         super().__init__()
-        self.image = pygame.image.load(image)
+        self.image = image
         self.position = (position[0], position[1])
         self.speed = 0.5
         self.aggro_range = 300
@@ -138,9 +157,9 @@ class Trap(pygame.sprite.Sprite):
 #Coin class
 class Coin(pygame.sprite.Sprite):
 
-    def __init__(self, position: tuple):
+    def __init__(self, image: pygame.Surface, position: tuple):
         super().__init__()
-        self.image = pygame.image.load(script_dir + "\\" + "coin.png")
+        self.image = image
         self.width = self.image.get_width()
         self.height = self.image.get_height()
         self.position = position[0], position[1]
@@ -149,9 +168,9 @@ class Coin(pygame.sprite.Sprite):
 #Door class
 class Door(pygame.sprite.Sprite):
 
-    def __init__(self, position: tuple):
+    def __init__(self, image: pygame.Surface, position: tuple):
         super().__init__()
-        self.image = pygame.image.load(script_dir + "\\" + "door.png")
+        self.image = image
         self.width = self.image.get_width()
         self.height = self.image.get_height()
         self.position = position[0], position[1]
@@ -168,6 +187,7 @@ class RobotPlatformer:
     player = pygame.sprite.GroupSingle()
     coins = pygame.sprite.Group()
     coins_collected = 0
+    P1_lives = 3
 
     def __init__(self):
         pygame.init()
@@ -191,6 +211,10 @@ class RobotPlatformer:
         self.tile_size = 20
         self.pause = True
         self.clock = pygame.time.Clock()
+        self.images = {}
+        for image in ["robot", "coin", "monster", "door"]:
+            self.images[image] = pygame.image.load( os.path.join(script_dir, image + ".png"))
+        self.robot_image = self.images["robot"]
     
     def load_window(self):
 
@@ -391,19 +415,19 @@ class RobotPlatformer:
                     wall = Wall( (x, y), self.tile_size)
                     wall.add(RobotPlatformer.all_sprites, RobotPlatformer.walls)
                 if cell == "C":
-                    coin = Coin( (x, y))
+                    coin = Coin(self.images["coin"], (x, y))
                     coin.add(RobotPlatformer.all_sprites, RobotPlatformer.coins)
                 if cell == "T":
                     trap = Trap( (x,y), self.tile_size)
                     trap.add(RobotPlatformer.all_sprites, RobotPlatformer.traps)
                 if cell == "D":
-                    door = Door( (x,y))
+                    door = Door( self.images["door"], (x,y))
                     door.add(RobotPlatformer.all_sprites, RobotPlatformer.doors)
                 if cell == "P":
-                    self.P1 = Player(script_dir + "\\" + "robot.png", (x,y) )
+                    self.P1 = Player( self.images["robot"], (x,y) )
                     self.P1.add(RobotPlatformer.all_sprites, RobotPlatformer.player)
                 if cell == "M":
-                    monster = Monster(script_dir + "\\" + "monster.png", (x,y) )
+                    monster = Monster( self.images["monster"], (x,y)  )
                     monster.add(RobotPlatformer.all_sprites, RobotPlatformer.monsters)
 
     def check_events(self):
@@ -444,6 +468,12 @@ class RobotPlatformer:
         shortcut_text = self.font.render("F2: restart | Control with arrow keys", True, (255, 0, 0) )
         self.window.blit(shortcut_text, (10, self.HEIGHT - 35) )
 
+        for i in range(self.P1_lives):    
+            # Uses a loop to print multiple "robot heads" to indicates how many lives the player has
+            lives_text = self.font.render("Lives: ", True, (255,0,0) )
+            self.window.blit(lives_text, (10, 50))
+            self.window.blit(self.robot_image, ( 60 + i*self.robot_image.get_width(), 45 ) , (0, 0, 50, 35)) 
+
     def check_collision(self):
         for tile in self.platforms: #Check for (1) if colliding (2) if player is above the platform (3) if not pressing DOWN (4) if player is moving downwards.
             if tile.rect.colliderect(self.P1.rect) and self.P1.position[1] + self.P1.height*0.85 <= tile.position[1] and not self.P1.movedown and self.P1.y_speed >= 0:
@@ -483,7 +513,7 @@ class RobotPlatformer:
                         monster.aggro_range += 50
                     
                     for i in range(2):
-                        coin = Coin( ( randint(100, 700), randint(100, 500)  ) )
+                        coin = Coin(self.images["coin"], ( randint(100, 700), randint(100, 500)  ) )
                         coin.add(self.all_sprites, self.coins)
         
         for door in self.doors:
@@ -491,22 +521,52 @@ class RobotPlatformer:
                 self.win_map()
         
         for monster in self.monsters:
-            if monster.rect.colliderect(self.P1.rect):
-                if self.current_level == 5:
-                    sleep(1)
-                    self.win_map()
-                else:
-                    sleep(1)
-                    self.lose_map()
+            if monster.rect.colliderect(self.P1.rect) and not self.P1.invulnerable:
+                # Player loses a life and turns invulerable (length determined in Player class)
+                self.P1_lives -= 1
+                self.P1.invulnerable = True
+                sleep(0.3)
+
+                if self.P1_lives == 0:
+                    if self.current_level == 5:
+                        sleep(1)
+                        self.win_map()
+                    else:
+                        sleep(1)
+                        self.lose_map()
 
         for trap in self.traps:
+            if trap.rect.colliderect(self.P1.rect) and not self.P1.invulnerable:
+                # Player loses a life and turns invulerable (length determined in Player class)
+                self.P1_lives -= 1
+                self.P1.invulnerable = True
+                sleep(0.3)
+
+                if self.P1_lives == 0:
+                    if self.current_level != 5:
+                        sleep(1)
+                        self.lose_map()        
+                    else:
+                        sleep(1)
+                        self.win_map()
+
             if trap.rect.colliderect(self.P1.rect):
-                if self.current_level != 5:
-                    sleep(1)
-                    self.lose_map()        
-                else:
-                    sleep(1)
-                    self.win_map()
+                if self.P1.position[1] + self.P1.height*0.7 <= trap.position[1]:
+                    self.P1.y_speed = min(self.P1.y_speed, 0)
+                    self.P1.position = ( self.P1.position[0], trap.position[1] - self.P1.height + 1)
+                    self.P1.grounded = True
+
+                elif self.P1.position[0] + self.P1.width - 5 <= trap.position[0]:
+                    self.P1.x_speed = min(self.P1.x_speed, 0)
+                    self.P1.position = ( trap.position[0] - self.P1.width - 1, self.P1.position[1] )
+
+                elif self.P1.position[0] + 5  >= trap.position[0] + self.tile_size:
+                    self.P1.x_speed = max(self.P1.x_speed, 0)
+                    self.P1.position = ( trap.position[0] + self.tile_size + 1, self.P1.position[1] )
+                    
+                elif self.P1.position[1] + self.P1.height >= trap.position[1]:
+                    self.P1.y_speed = max(self.P1.y_speed, 0)
+                    self.P1.position = ( self.P1.position[0], trap.position[1] + self.tile_size + 1 )
 
                 
 
@@ -523,6 +583,8 @@ class RobotPlatformer:
             self.P1.position = ( 0, self.P1.position[1] )
         elif self.P1.position[0] >= self.WIDTH - self.P1.width:
             self.P1.position =  ( self.WIDTH - self.P1.width, self.P1.position[1] )
+        if self.P1.position[1] >= self.HEIGHT:
+            self.P1.position = ( self.P1.map_start_position[0], self.P1.map_start_position[1] )
 
         
 
@@ -668,9 +730,9 @@ class RobotPlatformer:
             info_text = self.font.render("Watch out for the monsters!", True, (255, 0 ,0) )
             text_rect = info_text.get_rect(center=(self.WIDTH/2, self.HEIGHT*3/5))
             self.window.blit(info_text, (text_rect))
-            self.window.blit(pygame.image.load(script_dir + "\\" + "monster.png"), (self.WIDTH/2 - 25, self.HEIGHT/2 + 80) )
-            self.window.blit(pygame.image.load(script_dir + "\\" + "monster.png"), (self.WIDTH/2 - 75, self.HEIGHT/2 + 80) )
-            self.window.blit(pygame.image.load(script_dir + "\\" + "monster.png"), (self.WIDTH/2 + 25, self.HEIGHT/2 + 80) )
+            self.window.blit( self.images["monster"] , (self.WIDTH/2 - 25, self.HEIGHT/2 + 80) )
+            self.window.blit( self.images["monster"] , (self.WIDTH/2 - 75, self.HEIGHT/2 + 80) )
+            self.window.blit( self.images["monster"] , (self.WIDTH/2 + 25, self.HEIGHT/2 + 80) )
 
 
             shortcut_text = self.font.render("Press space to continue.", True, (255, 0, 0) )
