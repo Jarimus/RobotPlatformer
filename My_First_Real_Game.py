@@ -436,7 +436,7 @@ class RobotPlatformer:
                 exit()                
             #Player controls
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
+                if event.key == pygame.K_SPACE:
                     self.P1.moveup = True
                 if event.key == pygame.K_DOWN:
                     self.P1.movedown = True
@@ -452,7 +452,7 @@ class RobotPlatformer:
                     self.restart()
 
             if event.type == pygame.KEYUP:
-                if event.key == pygame.K_UP:
+                if event.key == pygame.K_SPACE:
                     self.P1.moveup = False
                 if event.key == pygame.K_DOWN:
                     self.P1.movedown = False
@@ -630,7 +630,7 @@ class RobotPlatformer:
                 if event.type == pygame.QUIT:
                     exit()                
                 #Player controls
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_c:
                     self.pause = False
                 
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
@@ -658,7 +658,7 @@ class RobotPlatformer:
             self.window.blit(controls_text, (text_rect))
 
 
-            shortcut_text = self.font.render("Press 'SPACE' to restart.", True, (255, 0, 0) )
+            shortcut_text = self.font.render("Press 'c' to restart.", True, (255, 0, 0) )
             text_rect = shortcut_text.get_rect(center=(self.WIDTH/2, self.HEIGHT*3/4))
             self.window.blit(shortcut_text, (text_rect) )
 
@@ -677,7 +677,7 @@ class RobotPlatformer:
             self.window.blit(controls_text, (text_rect))
 
 
-            shortcut_text = self.font.render("Press 'SPACE' to continue.", True, (255, 0, 0) )
+            shortcut_text = self.font.render("Press 'c' to continue.", True, (255, 0, 0) )
             text_rect = shortcut_text.get_rect(center=(self.WIDTH/2, self.HEIGHT*3/4))
             self.window.blit(shortcut_text, (text_rect) )
 
@@ -690,13 +690,13 @@ class RobotPlatformer:
             text_rect = coins_text.get_rect(center=(self.WIDTH/2, self.HEIGHT*2/5))
             self.window.blit(coins_text, ( text_rect ) )
             
-            info_text = self.font.render("Hold 'UP' to jump higher and press 'DOWN' to drop down from brown platforms!", True, (255, 0 ,0) )
+            info_text = self.font.render("Hold 'SPACE' to jump higher and press 'DOWN' to drop down from brown platforms!", True, (255, 0 ,0) )
             text_rect = info_text.get_rect(center=(self.WIDTH/2, self.HEIGHT*3/5))
             self.window.blit(info_text, (text_rect))
             pygame.draw.rect(self.window, (75,50,10) , pygame.Rect(self.WIDTH/2 - self.tile_size*5/2, self.HEIGHT*3/5 + 50, self.tile_size*5, self.tile_size))
 
 
-            shortcut_text = self.font.render("Press 'SPACE' to continue.", True, (255, 0, 0) )
+            shortcut_text = self.font.render("Press 'c' to continue.", True, (255, 0, 0) )
             text_rect = shortcut_text.get_rect(center=(self.WIDTH/2, self.HEIGHT*4/5))
             self.window.blit(shortcut_text, ( text_rect ) )
 
@@ -714,7 +714,7 @@ class RobotPlatformer:
             self.window.blit(info_text, (text_rect))
             pygame.draw.rect(self.window, (255,140,0) , pygame.Rect(self.WIDTH/2 - self.tile_size*5/2, self.HEIGHT*3/5 + 50, self.tile_size*5, self.tile_size))
 
-            shortcut_text = self.font.render("Press space to continue.", True, (255, 0, 0) )
+            shortcut_text = self.font.render("Press 'c' to continue.", True, (255, 0, 0) )
             text_rect = shortcut_text.get_rect(center=(self.WIDTH/2, self.HEIGHT*4/5))
             self.window.blit(shortcut_text, ( text_rect ) )
 
@@ -735,7 +735,7 @@ class RobotPlatformer:
             self.window.blit( self.images["monster"] , (self.WIDTH/2 + 25, self.HEIGHT/2 + 80) )
 
 
-            shortcut_text = self.font.render("Press space to continue.", True, (255, 0, 0) )
+            shortcut_text = self.font.render("Press 'c' to continue.", True, (255, 0, 0) )
             text_rect = shortcut_text.get_rect(center=(self.WIDTH/2, self.HEIGHT*4/5))
             self.window.blit(shortcut_text, ( text_rect ) )
 
@@ -752,7 +752,7 @@ class RobotPlatformer:
             text_rect = info_text.get_rect(center=(self.WIDTH/2, self.HEIGHT*3/5))
             self.window.blit(info_text, (text_rect))
 
-            shortcut_text = self.font.render("Press space to continue.", True, (255, 0, 0) )
+            shortcut_text = self.font.render("Press 'c' to continue.", True, (255, 0, 0) )
             text_rect = shortcut_text.get_rect(center=(self.WIDTH/2, self.HEIGHT*4/5))
             self.window.blit(shortcut_text, ( text_rect ) )
 
@@ -765,7 +765,7 @@ class RobotPlatformer:
             text_rect = coins_text.get_rect(center=(self.WIDTH/2, self.HEIGHT*2/5))
             self.window.blit(coins_text, ( text_rect ) )
 
-            coins_text = self.title_font.render("Press space to exit.", True, (255, 0, 0) )
+            coins_text = self.title_font.render("Press 'c' to exit.", True, (255, 0, 0) )
             text_rect = coins_text.get_rect(center=(self.WIDTH/2, self.HEIGHT*3/5))
             self.window.blit(coins_text, ( text_rect ) )
 
