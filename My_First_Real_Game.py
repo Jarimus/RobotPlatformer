@@ -508,6 +508,8 @@ class RobotPlatformer:
             if coin.rect.colliderect(self.P1.rect):
                 coin.kill()
                 self.coins_collected += 1
+                if self.coins_collected % 10 == 0:
+                    self.P1_lives += 1
 
                 if self.current_level == 5 and not self.coins:
                     for monster in self.monsters:
@@ -673,7 +675,7 @@ class RobotPlatformer:
             text_rect = info_text.get_rect(center=(self.WIDTH/2, self.HEIGHT/4 - 80))
             self.window.blit(info_text, (text_rect))
 
-            info_text = self.font.render("Grab the coins and get to the exit to advance!", True, (255, 0 ,0) )
+            info_text = self.font.render("Grab 10 coins for an extra life and get to the exit to advance!", True, (255, 0 ,0) )
             text_rect = info_text.get_rect(center=(self.WIDTH/2, self.HEIGHT/4))
             self.window.blit(info_text, (text_rect))
 
