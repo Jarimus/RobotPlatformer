@@ -3,7 +3,7 @@ import math
 from random import randint
 from time import sleep
 
-script_dir = os.path.dirname(__file__) #<-- The location of the .py-file for loading the image files.
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 #Player character attributes
 class Player(pygame.sprite.Sprite):
@@ -58,6 +58,8 @@ class Player(pygame.sprite.Sprite):
                 self.image.set_alpha(25)
             elif self.invulnerable_timer % 10 == 0:
                 self.image.set_alpha()
+        else:
+            self.image.set_alpha()
                 
 
         
@@ -178,6 +180,7 @@ class Door(pygame.sprite.Sprite):
 
 #Main game
 class RobotPlatformer:
+
     all_sprites = pygame.sprite.Group()
     platforms = pygame.sprite.Group()
     walls = pygame.sprite.Group()
@@ -213,7 +216,7 @@ class RobotPlatformer:
         self.clock = pygame.time.Clock()
         self.images = {}
         for image in ["robot", "coin", "monster", "door"]:
-            self.images[image] = pygame.image.load( os.path.join(script_dir, image + ".png"))
+            self.images[image] = pygame.image.load( image + ".png")
         self.robot_image = self.images["robot"]
     
     def load_window(self):
@@ -232,7 +235,6 @@ class RobotPlatformer:
         self.traps.empty()
         self.monsters.empty()
         self.all_sprites.empty()
-
    
     def new_game(self):
         self.current_level = 1
@@ -266,8 +268,8 @@ class RobotPlatformer:
 '                                        ',
 '                                        ',
 '                                        ',
-'                                        ',
-'   P                                D   ',
+'   P                                    ',
+'                                    D   ',
 '                                        ',
 '                C     C      C          ',
 '                                        ',
@@ -410,25 +412,25 @@ class RobotPlatformer:
 
                 if cell == "X":
                     tile = Tile( (x, y), self.tile_size)
-                    tile.add(RobotPlatformer.all_sprites, RobotPlatformer.platforms)
+                    tile.add(self.all_sprites, self.platforms)
                 if cell == "W":
                     wall = Wall( (x, y), self.tile_size)
-                    wall.add(RobotPlatformer.all_sprites, RobotPlatformer.walls)
+                    wall.add(self.all_sprites, self.walls)
                 if cell == "C":
                     coin = Coin(self.images["coin"], (x, y))
-                    coin.add(RobotPlatformer.all_sprites, RobotPlatformer.coins)
+                    coin.add(self.all_sprites, self.coins)
                 if cell == "T":
                     trap = Trap( (x,y), self.tile_size)
-                    trap.add(RobotPlatformer.all_sprites, RobotPlatformer.traps)
+                    trap.add(self.all_sprites, self.traps)
                 if cell == "D":
                     door = Door( self.images["door"], (x,y))
-                    door.add(RobotPlatformer.all_sprites, RobotPlatformer.doors)
+                    door.add(self.all_sprites, self.doors)
                 if cell == "P":
                     self.P1 = Player( self.images["robot"], (x,y) )
-                    self.P1.add(RobotPlatformer.all_sprites, RobotPlatformer.player)
+                    self.P1.add(self.all_sprites, self.player)
                 if cell == "M":
                     monster = Monster( self.images["monster"], (x,y)  )
-                    monster.add(RobotPlatformer.all_sprites, RobotPlatformer.monsters)
+                    monster.add(self.all_sprites, self.monsters)
 
     def check_events(self):
         for event in pygame.event.get():
@@ -511,13 +513,17 @@ class RobotPlatformer:
                     for monster in self.monsters:
                         monster.speed += 0.25
                         monster.aggro_range += 50
+
+                    if not self.doors:
+                        door = (Door(self.images["door"], ( (self.WIDTH - self.images["door"].get_width() )/2, 490 )))
+                        door.add( self.doors, self.all_sprites )
                     
                     for i in range(2):
-                        coin = Coin(self.images["coin"], ( randint(100, 700), randint(100, 500)  ) )
+                        coin = Coin(self.images["coin"], ( randint(100, 700), randint(100, 400)  ) )
                         coin.add(self.all_sprites, self.coins)
         
         for door in self.doors:
-            if door.rect.colliderect(self.P1.rect) and not self.coins:
+            if door.rect.colliderect(self.P1.rect): #and not self.coins: #Condition, if you want collecting coins to be a requirement.
                 self.win_map()
         
         for monster in self.monsters:
@@ -527,11 +533,7 @@ class RobotPlatformer:
                 self.P1.invulnerable = True
                 sleep(0.3)
 
-                if self.P1_lives == 0:
-                    if self.current_level == 5:
-                        sleep(1)
-                        self.win_map()
-                    else:
+                if self.P1_lives <= 0:
                         sleep(1)
                         self.lose_map()
 
@@ -542,13 +544,9 @@ class RobotPlatformer:
                 self.P1.invulnerable = True
                 sleep(0.3)
 
-                if self.P1_lives == 0:
-                    if self.current_level != 5:
+                if self.P1_lives <= 0:
                         sleep(1)
-                        self.lose_map()        
-                    else:
-                        sleep(1)
-                        self.win_map()
+                        self.lose_map()
 
             if trap.rect.colliderect(self.P1.rect):
                 if self.P1.position[1] + self.P1.height*0.7 <= trap.position[1]:
@@ -589,12 +587,12 @@ class RobotPlatformer:
         
 
     def win_map(self):
-        self.clear_sprites()
         self.pause = True
         self.current_level = self.current_level + 1
         self.start_map_screen()
         if self.current_level == 6:
             exit()
+        self.clear_sprites()
         self.get_map()
         self.load_window()
         self.populate_map()
@@ -605,24 +603,25 @@ class RobotPlatformer:
         self.current_level = 0
         self.start_map_screen()
         self.coins_collected = 0
+        self.P1_lives = 3
         self.pause = True
         self.current_level = 1
         self.start_map_screen()
         self.get_map()
         self.load_window()
         self.populate_map()
+
     
     def restart(self):
-        self.clear_sprites()
         self.pause = True
         self.current_level = 1
         self.coins_collected = 0
+        self.P1_lives = 3
         self.start_map_screen()
+        self.clear_sprites()
         self.get_map()
         self.load_window()
         self.populate_map()
-
-
 
     def start_map_screen(self):
         while self.pause:
@@ -632,6 +631,10 @@ class RobotPlatformer:
                 #Player controls
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_c:
                     self.pause = False
+
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_F2:
+                    self.pause = False
+                    self.restart()
                 
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     exit()
@@ -640,6 +643,7 @@ class RobotPlatformer:
             self.clock.tick(60)
             self.draw_info_screen()
             pygame.display.flip()
+        
     
     def draw_info_screen(self):
 
@@ -664,7 +668,8 @@ class RobotPlatformer:
 
         elif self.current_level == 1:
 
-            info_text = self.title_font.render("Robot platformer", True, (255, 0 ,0) )
+            title_text = "Robot platformer!"
+            info_text = self.title_font.render(title_text, True, (255, 0 ,0) )
             text_rect = info_text.get_rect(center=(self.WIDTH/2, self.HEIGHT/4 - 80))
             self.window.blit(info_text, (text_rect))
 
@@ -748,7 +753,7 @@ class RobotPlatformer:
             text_rect = coins_text.get_rect(center=(self.WIDTH/2, self.HEIGHT*2/5))
             self.window.blit(coins_text, ( text_rect ) )
             
-            info_text = self.font.render("This is the final level! Survive for as long as you can!", True, (255, 0 ,0) )
+            info_text = self.font.render("This is the final level! Collect coins and escape through the door!", True, (255, 0 ,0) )
             text_rect = info_text.get_rect(center=(self.WIDTH/2, self.HEIGHT*3/5))
             self.window.blit(info_text, (text_rect))
 
@@ -791,13 +796,11 @@ class RobotPlatformer:
             self.player_in_window()
 
             #Movement
-            self.player.update()
-            self.monsters.update()
+            self.all_sprites.update()
 
             #draw frame
             self.all_sprites.draw(self.window)
             self.draw_UI()
-            self.player.draw(self.window)
 
             #check flags
             self.check_flags()
