@@ -12,7 +12,7 @@ class Player(pygame.sprite.Sprite):
         self.image = image
         self.position = (position[0], position[1])
         self.map_start_position = (position[0], position[1])
-        self.speed = 0.3
+        self.acc = 0.3
         self.max_speed = 5
         self.jump_strength = 14
         self.fall_speed = 0.7
@@ -35,9 +35,9 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         #Update speed parameters
         if self.moveleft:
-            self.x_speed = max( self.x_speed - self.speed, -self.max_speed)
+            self.x_speed = max( self.x_speed - self.acc, -self.max_speed)
         if self.moveright:
-            self.x_speed = min( self.x_speed + self.speed, self.max_speed)
+            self.x_speed = min( self.x_speed + self.acc, self.max_speed)
 
 
         #check for flags and their effects
@@ -65,9 +65,9 @@ class Player(pygame.sprite.Sprite):
         
         if not self.moveleft and not self.moveright:
             if self.x_speed < 0:
-                self.x_speed += self.speed
+                self.x_speed += self.acc
             elif self.x_speed > 0:
-                self.x_speed -= self.speed
+                self.x_speed -= self.acc
             if abs(self.x_speed) < 1:
                 self.x_speed = 0
         
@@ -78,6 +78,7 @@ class Player(pygame.sprite.Sprite):
 
         self.position = (new_pos_x, new_pos_y)
         self.rect = pygame.Rect(self.position[0], self.position[1], self.width, self.height)
+
 
 
     def jump(self):
