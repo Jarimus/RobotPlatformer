@@ -10,8 +10,12 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, image: pygame.Surface, position: tuple):
         super().__init__()
         self.image = image
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
+
         self.position = (position[0], position[1])
         self.map_start_position = (position[0], position[1])
+
         self.acc = 0.3
         self.max_speed = 5
         self.jump_strength = 14
@@ -19,18 +23,19 @@ class Player(pygame.sprite.Sprite):
         self.max_fall_speed = 10
         self.y_speed = 0
         self.x_speed = 0
-        self.width = self.image.get_width()
-        self.height = self.image.get_height()
+
         self.movedown = False
         self.moveup = False
         self.moveright = False
         self.moveleft = False
         self.grounded = False
         self.jumping = False
+
         self.invulnerable = False
         self.invulnerable_length = 120
         self.invulnerable_timer = 0
-        self.rect = pygame.Rect(self.position[0], self.position[1], self.width, self.height)
+
+        self.rect = self.image.get_rect(topleft=self.position)
 
     def update(self):
         #Update speed parameters
@@ -77,7 +82,7 @@ class Player(pygame.sprite.Sprite):
         new_pos_y = self.position[1] + self.y_speed
 
         self.position = (new_pos_x, new_pos_y)
-        self.rect = pygame.Rect(self.position[0], self.position[1], self.width, self.height)
+        self.rect.topleft = (self.position[0], self.position[1])
 
 
 
@@ -103,7 +108,7 @@ class Monster(pygame.sprite.Sprite):
         self.rect = pygame.Rect(self.position[0], self.position[1], self.width, self.height)
 
     def update(self):
-        for character in RobotPlatformer.player:
+        for character in Robot_Platformer.player:
             x_dif = character.position[0] - self.position[0]
             y_dif = character.position[1] - self.position[1]
             distance = math.sqrt( x_dif**2 + y_dif**2 )
@@ -119,7 +124,7 @@ class Monster(pygame.sprite.Sprite):
                     self.position = (self.position[0], self.position[1] - self.speed*0.5)
 
         self.position = (self.position[0], self.position[1])
-        self.rect = pygame.Rect(self.position[0], self.position[1], self.width, self.height)
+        self.rect.topleft = (self.position[0], self.position[1])
     
 
 #Tile class
@@ -128,7 +133,7 @@ class Tile(pygame.sprite.Sprite):
 
     def __init__(self, position: tuple, side):
         super().__init__()
-        self.image = pygame.Surface([side, side])
+        self.image = pygame.Surface( (side, side) )
         self.image.fill( self.color )
         self.position = position[0], position[1]
         self.rect = pygame.Rect(self.position[0], self.position[1], side, side)
@@ -143,8 +148,6 @@ class Wall(pygame.sprite.Sprite):
         self.image.fill( self.color )
         self.position = position[0], position[1]
         self.rect = pygame.Rect(self.position[0], self.position[1], side, side)
-        self.right_side = pygame.Rect(self.position[0] + side - 5, self.position[1] + 5, 10, side - 10)
-        self.left_side = pygame.Rect(self.position[0] - 5, self.position[1] + 5, 10, side - 10)
 
 #Trap class
 class Trap(pygame.sprite.Sprite):
@@ -180,7 +183,7 @@ class Door(pygame.sprite.Sprite):
         self.rect = pygame.Rect(self.position[0], self.position[1], self.width, self.height)
 
 #Main game
-class RobotPlatformer:
+class Robot_Platformer:
 
     all_sprites = pygame.sprite.Group()
     platforms = pygame.sprite.Group()
@@ -642,7 +645,7 @@ class RobotPlatformer:
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     exit()
             
-            self.window.fill( (75, 75, 75) )
+            self.window.fill( (35, 35, 35) )
             self.clock.tick(60)
             self.draw_info_screen()
             pygame.display.flip()
@@ -787,7 +790,7 @@ class RobotPlatformer:
             self.clock.tick(60)
             
             #canvas
-            self.window.fill( (75, 75, 75) )
+            self.window.fill( (35, 35, 35) )
 
             #events: exit and controls
             self.check_events()
@@ -810,4 +813,4 @@ class RobotPlatformer:
 
             pygame.display.flip()
 
-robot_platformer = RobotPlatformer()
+robot_platformer = Robot_Platformer()
